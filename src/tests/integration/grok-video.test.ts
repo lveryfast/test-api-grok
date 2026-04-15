@@ -116,6 +116,28 @@ describe('Grok Video API Integration', () => {
         expect(result.data.sceneNumber).toBe(1);
       }
     });
+
+    it('should reject invalid base64 image format', async () => {
+      const { VideoGenerationSchema } = await import('@/app/api/grok/video/schema');
+      
+      const result = VideoGenerationSchema.safeParse({
+        prompt: 'A person walking',
+        image: 'not-a-valid-base64-image',
+      });
+      
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept valid base64 image with jpeg format', async () => {
+      const { VideoGenerationSchema } = await import('@/app/api/grok/video/schema');
+      
+      const result = VideoGenerationSchema.safeParse({
+        prompt: 'A person walking',
+        image: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==',
+      });
+      
+      expect(result.success).toBe(true);
+    });
   });
 
   describe('Prompt sanitization', () => {

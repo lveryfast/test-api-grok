@@ -77,6 +77,7 @@ export function StyleSection() {
         id: `custom-${Date.now()}`,
         title: customTitle.trim(),
         description: customDescription.trim(),
+        prompt: customDescription.trim(), // Use description as prompt
         isCustom: true,
       };
       addCustomStyle(newStyle);

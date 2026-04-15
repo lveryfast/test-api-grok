@@ -149,7 +149,6 @@ export default function HomePage() {
                 {/* Prompt Preview for Current Scene */}
                 <PromptPreview
                   sceneNumber={currentSceneIndex}
-                  onConfirm={handlePromptConfirm}
                   isGenerating={isGenerating}
                 />
               </CardContent>

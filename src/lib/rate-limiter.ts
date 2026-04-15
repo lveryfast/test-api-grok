@@ -3,6 +3,9 @@
  * 
  * Simple implementation for single-instance deployments.
  * For multi-instance deployments, use Redis or Upstash.
+ * 
+ * Note: This implementation cleans up expired entries on-demand
+ * rather than using a timer to avoid memory leaks in serverless.
  */
 
 interface RateLimitEntry {
@@ -35,32 +38,18 @@ export const SCREENSHOT_RATE_LIMIT: RateLimitConfig = {
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 /**
- * Clean up expired entries periodically
+ * Clean up expired entries from the store
+ * Called on-demand to avoid memory leaks from timers
  */
-const CLEANUP_INTERVAL = 60 * 1000; // 1 minute
-
-let cleanupTimer: NodeJS.Timeout | null = null;
-
-function startCleanup(): void {
-  if (cleanupTimer) return;
-  
-  cleanupTimer = setInterval(() => {
-    const now = Date.now();
-    const entries = Array.from(rateLimitStore.entries());
-    for (const [key, entry] of entries) {
-      // Remove entries that have expired
-      if (entry.resetAt < now) {
-        rateLimitStore.delete(key);
-      }
+function cleanupExpiredEntries(): void {
+  const now = Date.now();
+  const entries = Array.from(rateLimitStore.entries());
+  for (const [key, entry] of entries) {
+    if (entry.resetAt < now) {
+      rateLimitStore.delete(key);
     }
-  }, CLEANUP_INTERVAL);
-  
-  // Don't prevent process exit
-  cleanupTimer.unref();
+  }
 }
-
-// Start cleanup on first use
-startCleanup();
 
 /**
  * Check if a request should be rate limited
@@ -74,6 +63,9 @@ export function checkRateLimit(
 ): RateLimitResult {
   const now = Date.now();
   const windowStart = now - config.windowMs;
+  
+  // Clean up expired entries on-demand (no timer to avoid memory leaks)
+  cleanupExpiredEntries();
   
   let entry = rateLimitStore.get(clientId);
   

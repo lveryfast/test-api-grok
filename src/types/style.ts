@@ -103,17 +103,17 @@ export const PREDEFINED_STYLES: VideoStyle[] = [
   {
     id: 'minecraft',
     title: 'Estilo Minecraft',
-    description: 'Estetica voxel cubica y pixilada tipo videojuego Minecraft.',
-    prompt: 'Estetica voxel cubica y pixilada tipo videojuego Minecraft.',
+    description: 'Estética voxel cúbica y pixilada tipo videojuego Minecraft.',
+    prompt: 'Estética voxel cúbica y pixilada tipo videojuego Minecraft.',
     isCustom: false,
   },
   {
     id: 'dibujo-lapiz',
-    title: 'Estilo Dibujo a Lapiz',
+    title: 'Estilo Dibujo a Lápiz',
     description:
-      'Boceto a lapiz realista hecho a mano con trazos naturales y sombreado suave.',
+      'Boceto a lápiz realista hecho a mano con trazos naturales y sombreado suave.',
     prompt:
-      'Boceto a lapiz realista hecho a mano con trazos naturales y sombreado suave.',
+      'Boceto a lápiz realista hecho a mano con trazos naturales y sombreado suave.',
     isCustom: false,
   },
   {

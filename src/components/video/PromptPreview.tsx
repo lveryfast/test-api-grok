@@ -12,11 +12,10 @@ import { AlertCircle, CheckCircle, Copy, Send } from 'lucide-react';
 
 interface PromptPreviewProps {
   sceneNumber: number;
-  onConfirm: (prompt: string, screenshot?: string) => void;
   isGenerating: boolean;
 }
 
-export function PromptPreview({ sceneNumber, onConfirm, isGenerating }: PromptPreviewProps) {
+export function PromptPreview({ sceneNumber, isGenerating }: PromptPreviewProps) {
   const {
     script,
     selectedStyle,
@@ -64,12 +63,6 @@ export function PromptPreview({ sceneNumber, onConfirm, isGenerating }: PromptPr
     navigator.clipboard.writeText(fullPrompt);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleConfirm = () => {
-    if (validation.isValid) {
-      onConfirm(fullPrompt, previousScreenshot);
-    }
   };
 
   return (
@@ -149,17 +142,10 @@ export function PromptPreview({ sceneNumber, onConfirm, isGenerating }: PromptPr
           <Button
             variant="outline"
             onClick={handleCopyPrompt}
-            disabled={!validation.isValid}
+            disabled={!validation.isValid || isGenerating}
           >
             <Copy className="h-4 w-4 mr-2" />
             {copied ? '¡Copiado!' : 'Copiar Prompt'}
-          </Button>
-
-          <Button
-            onClick={handleConfirm}
-            disabled={!validation.isValid || isGenerating}
-          >
-            {isGenerating ? 'Generando...' : 'Confirmar y Generar Video'}
           </Button>
         </div>
       </CardContent>
