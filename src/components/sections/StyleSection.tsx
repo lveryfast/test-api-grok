@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Pencil, Plus, Check, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Check, Trash2, Palette } from 'lucide-react';
 
 export function StyleSection() {
   const {
@@ -103,11 +103,16 @@ export function StyleSection() {
   const isEditing = editingStyle?.isCustom;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>2. Estilo de Video</CardTitle>
+    <Card className="card-hover borderBorder/50 overflow-hidden">
+      <CardHeader className="border-b border-border/30 bg-gradient-to-r from-transparent to-primary/5">
+        <CardTitle className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+            <Palette className="h-5 w-5" />
+          </div>
+          <span>2. Estilo</span>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {allStyles.map((style) => {
             const isPredefined = !style.isCustom;
@@ -241,12 +246,16 @@ function StyleCard({
   isEdited = false,
 }: StyleCardProps) {
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onSelect}
+      onKeyDown={(e) => e.key === 'Enter' && onSelect()}
       className={`
-        relative h-auto min-h-[120px] p-4 rounded-lg border-2 text-left transition-all
-        ${isSelected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
-        ${isEdited ? 'ring-2 ring-amber-400 ring-offset-2' : ''}
+        relative h-auto min-h-[120px] p-4 rounded-lg border-2 text-left transition-all cursor-pointer
+        ${isSelected ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20' : 'border-border hover:border-primary/50 hover:shadow-md hover:shadow-primary/10'}
+        ${isEdited ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-background' : ''}
+        ${isSelected ? 'glow-green' : ''}
       `}
     >
       {isSelected && (
@@ -256,7 +265,7 @@ function StyleCard({
       )}
       {isEdited && (
         <div className="absolute top-1 right-1">
-          <span className="text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
+          <span className="text-xs bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/30">
             Editado
           </span>
         </div>
@@ -264,18 +273,17 @@ function StyleCard({
       <h3 className="font-semibold mb-2 pr-8">{style.title}</h3>
       <p className="text-sm text-muted-foreground line-clamp-3">{style.description}</p>
       {showEditButton && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute bottom-2 right-2 h-auto p-1"
+        <button
           onClick={(e) => {
             e.stopPropagation();
             onEdit();
           }}
+          className="absolute bottom-2 right-2 p-1.5 rounded-md bg-muted hover:bg-muted/80 transition-colors"
+          aria-label="Editar estilo"
         >
           <Pencil className="h-4 w-4" />
-        </Button>
+        </button>
       )}
-    </button>
+    </div>
   );
 }
