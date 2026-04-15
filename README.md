@@ -309,18 +309,18 @@ Formato de cada línea (JSON):
 
 ---
 
-## Límites de Caracteres
+## Límites de Caracteres (Optimizados Costo-Beneficio)
 
-Para optimizar costos, se aplican los siguientes límites:
+Límites diseñados para minimizar costos de API manteniendo calidad:
 
-| Campo | Límite |
-|-------|--------|
-| Guión | 5,000 |
-| Personaje | 1,000 |
-| Voz | 500 |
-| Diálogo por escena | 300 |
-| Descripción por escena | 400 |
-| Estilo personalizado | 200 |
+| Campo | Límite | Tokens aprox. |
+|-------|--------|---------------|
+| Guión | 5,000 | ~1,250 |
+| Personaje | 500 | ~125 |
+| Voz | 300 | ~75 |
+| Diálogo por escena | 200 | ~50 |
+| Descripción por escena | 300 | ~75 |
+| Estilo personalizado | 150 | ~37 |
 
 ---
 

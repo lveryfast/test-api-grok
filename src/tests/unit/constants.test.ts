@@ -7,13 +7,13 @@ import {
 
 describe('constants', () => {
   describe('CHARACTER_LIMITS', () => {
-    it('should have correct limits defined', () => {
+    it('should have correct cost-efficient limits defined', () => {
       expect(CHARACTER_LIMITS.SCRIPT).toBe(5000);
-      expect(CHARACTER_LIMITS.CHARACTER_PROMPT).toBe(1000);
-      expect(CHARACTER_LIMITS.VOICE_PROMPT).toBe(500);
-      expect(CHARACTER_LIMITS.SCENE_DIALOGUE).toBe(300);
-      expect(CHARACTER_LIMITS.SCENE_DESCRIPTION).toBe(400);
-      expect(CHARACTER_LIMITS.CUSTOM_STYLE_DESCRIPTION).toBe(200);
+      expect(CHARACTER_LIMITS.CHARACTER_PROMPT).toBe(500);
+      expect(CHARACTER_LIMITS.VOICE_PROMPT).toBe(300);
+      expect(CHARACTER_LIMITS.SCENE_DIALOGUE).toBe(200);
+      expect(CHARACTER_LIMITS.SCENE_DESCRIPTION).toBe(300);
+      expect(CHARACTER_LIMITS.CUSTOM_STYLE_DESCRIPTION).toBe(150);
     });
 
     it('should have all required fields', () => {

@@ -1,12 +1,9 @@
 import { create } from 'zustand';
 import {
-  VideoStyle,
-  Scene,
   SceneCount,
-  SCENE_COUNTS,
   CHARACTER_LIMITS,
 } from '@/types/constants';
-import { GeneratedVideo } from '@/types/video';
+import { VideoStyle, Scene, GeneratedVideo } from '@/types/video';
 import { GrokApiLog } from '@/types/api';
 
 interface VideoStore {
@@ -17,9 +14,12 @@ interface VideoStore {
   // Style
   selectedStyle: VideoStyle | null;
   customStyles: VideoStyle[];
+  editedStyles: Record<string, VideoStyle>; // Edits to predefined styles
   setSelectedStyle: (style: VideoStyle | null) => void;
   addCustomStyle: (style: VideoStyle) => void;
+  updateCustomStyle: (styleId: string, updates: Partial<VideoStyle>) => void;
   removeCustomStyle: (styleId: string) => void;
+  updatePredefinedStyle: (originalId: string, updates: Partial<VideoStyle>) => void;
 
   // Character
   characterPrompt: string;
@@ -76,14 +76,34 @@ export const useVideoStore = create<VideoStore>((set, get) => ({
   // Style
   selectedStyle: null,
   customStyles: [],
+  editedStyles: {},
   setSelectedStyle: (style) => set({ selectedStyle: style }),
   addCustomStyle: (style) =>
     set((state) => ({
       customStyles: [...state.customStyles, style],
     })),
+  updateCustomStyle: (styleId, updates) =>
+    set((state) => ({
+      customStyles: state.customStyles.map((s) =>
+        s.id === styleId ? { ...s, ...updates } : s
+      ),
+    })),
   removeCustomStyle: (styleId) =>
     set((state) => ({
       customStyles: state.customStyles.filter((s) => s.id !== styleId),
+    })),
+  updatePredefinedStyle: (originalId, updates) =>
+    set((state) => ({
+      editedStyles: {
+        ...state.editedStyles,
+        [originalId]: {
+          id: originalId,
+          title: updates.title || originalId,
+          description: updates.description || '',
+          isCustom: false,
+          ...updates,
+        },
+      },
     })),
 
   // Character
@@ -157,6 +177,7 @@ export const useVideoStore = create<VideoStore>((set, get) => ({
       script: '',
       selectedStyle: null,
       customStyles: [],
+      editedStyles: {},
       characterPrompt: '',
       voicePrompt: '',
       sceneCount: 4,
