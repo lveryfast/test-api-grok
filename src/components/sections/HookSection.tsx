@@ -31,7 +31,7 @@ export function HookSection() {
           className="min-h-[120px] resize-y bg-muted/50 border-border/50 focus:border-primary/50 focus:ring-primary/20"
         />
         <p className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border/30">
-          💡 Este prompt se utilizará para generar la primera escena. Incluye el contexto inicial y el "gancho" que captará la atención.
+          💡 Este prompt se utilizará para generar la primera escena. Incluye el contexto inicial y el &quot;gancho&quot; que captará la atención.
         </p>
       </CardContent>
     </Card>

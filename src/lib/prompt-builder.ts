@@ -1,4 +1,5 @@
-import { Scene, VideoStyle } from '@/types/constants';
+import { Scene } from '@/types/scene';
+import { VideoStyle } from '@/types/video';
 
 export interface PromptComponents {
   script: string;

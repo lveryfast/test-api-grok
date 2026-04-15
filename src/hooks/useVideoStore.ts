@@ -3,7 +3,8 @@ import {
   SceneCount,
   CHARACTER_LIMITS,
 } from '@/types/constants';
-import { VideoStyle, Scene, GeneratedVideo } from '@/types/video';
+import { Scene } from '@/types/scene';
+import { VideoStyle, GeneratedVideo } from '@/types/video';
 import { GrokApiLog } from '@/types/api';
 
 interface VideoStore {

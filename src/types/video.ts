@@ -5,19 +5,12 @@ export interface VideoStyle {
   isCustom: boolean;
 }
 
-export interface Scene {
-  id: number;
-  dialogue: string;
-  description: string;
-}
-
 export interface VideoConfig {
   script: string;
   style: VideoStyle | null;
   characterPrompt: string;
   voicePrompt: string;
   sceneCount: number;
-  scenes: Scene[];
   hook: string;
 }
 
