@@ -3,6 +3,11 @@ import { logVideoGeneration, logVideoError } from '@/lib/api-logger';
 import { GrokVideoResponse } from '@/types/api';
 import { VideoGenerationSchema } from './schema';
 import { sanitizePrompt } from './sanitize';
+import { 
+  checkRateLimit, 
+  getClientId, 
+  VIDEO_GENERATION_RATE_LIMIT 
+} from '@/lib/rate-limiter';
 
 const GROK_API_URL = 'https://api.x.ai/v1/videos/generate';
 const API_KEY = process.env.GROK_API_KEY;
@@ -67,6 +72,31 @@ async function callGrokApi(
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
+  // Rate limiting check (before try block)
+  const clientId = getClientId(request);
+  const rateLimit = checkRateLimit(clientId, VIDEO_GENERATION_RATE_LIMIT);
+  
+  // Set rate limit headers
+  const headers = new Headers({
+    'X-RateLimit-Limit': String(rateLimit.total),
+    'X-RateLimit-Remaining': String(rateLimit.remaining),
+    'X-RateLimit-Reset': String(Math.ceil(rateLimit.resetAt / 1000)),
+  });
+
+  if (rateLimit.isLimited) {
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Rate limit exceeded. Please wait before making another request.',
+        retryAfter: Math.ceil((rateLimit.resetAt - Date.now()) / 1000),
+      },
+      { 
+        status: 429,
+        headers,
+      }
+    );
+  }
+
   try {
     // Parse and validate request body
     const body = await request.json();
@@ -76,7 +106,7 @@ export async function POST(request: NextRequest) {
       const errors = validation.error.errors.map((e) => e.message).join(', ');
       return NextResponse.json(
         { success: false, error: `Validation error: ${errors}` },
-        { status: 400 }
+        { status: 400, headers }
       );
     }
 
@@ -89,7 +119,7 @@ export async function POST(request: NextRequest) {
       await logVideoError(sceneNumber, { prompt, image, sceneNumber }, errorMsg, duration);
       return NextResponse.json(
         { success: false, error: errorMsg },
-        { status: 500 }
+        { status: 500, headers }
       );
     }
 
@@ -104,7 +134,7 @@ export async function POST(request: NextRequest) {
       await logVideoError(sceneNumber, { prompt: sanitizedPrompt, image, sceneNumber }, result.error || 'Unknown error', duration);
       return NextResponse.json(
         { success: false, error: result.error },
-        { status: 500 }
+        { status: 500, headers }
       );
     }
 
@@ -133,7 +163,7 @@ export async function POST(request: NextRequest) {
       ...response,
       generationTime: duration,
       sceneNumber,
-    });
+    }, { headers });
   } catch (error) {
     const duration = Date.now() - startTime;
     console.error('Error generating video:', error);
@@ -143,7 +173,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: error instanceof Error ? error.message : 'Internal server error',
       },
-      { status: 500 }
+      { status: 500, headers }
     );
   }
 }
