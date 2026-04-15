@@ -1,12 +1,20 @@
 /**
- * Predefined video styles with their prompts
+ * Video style for video generation
+ * prompt field is optional - if not provided, description will be used
  */
 export interface VideoStyle {
   id: string;
   title: string;
   description: string;
-  prompt: string;
+  prompt?: string;
   isCustom: boolean;
+}
+
+/**
+ * Get the effective prompt for a style (uses description as fallback)
+ */
+export function getStylePrompt(style: VideoStyle): string {
+  return style.prompt || style.description;
 }
 
 /**
@@ -18,11 +26,6 @@ export interface CustomStyle {
   description: string;
   prompt: string;
 }
-
-/**
- * Available scene count options
- */
-export const SCENE_COUNT_OPTIONS = [2, 4, 6, 8, 10, 12, 14] as const;
 
 /**
  * Predefined video styles

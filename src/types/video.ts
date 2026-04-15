@@ -1,13 +1,10 @@
-export interface VideoStyle {
-  id: string;
-  title: string;
-  description: string;
-  isCustom: boolean;
-}
+// VideoStyle is defined in style.ts and re-exported here for convenience
+// All VideoStyle definitions should be in src/types/style.ts
+export type { VideoStyle, CustomStyle } from './style';
 
 export interface VideoConfig {
   script: string;
-  style: VideoStyle | null;
+  style: import('./style').VideoStyle | null;
   characterPrompt: string;
   voicePrompt: string;
   sceneCount: number;
