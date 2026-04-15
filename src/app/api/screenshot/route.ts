@@ -1,18 +1,71 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { spawn } from 'child_process';
+import ffmpeg from 'fluent-ffmpeg';
 import path from 'path';
-
-const SCREENSHOT_SCRIPT = path.join(process.cwd(), 'python', 'screenshot', 'extract_frame.py');
+import fs from 'fs';
 
 // Zod schema for request validation
 const ScreenshotRequestSchema = z.object({
-  videoPath: z.string().min(1, 'Video path is required').url('Invalid URL format'),
+  videoPath: z.string().min(1, 'Video path is required'),
   timestamp: z.number().positive().optional(),
 });
 
+interface FFmpegMetadata {
+  format?: {
+    duration?: number;
+  };
+}
+
 /**
- * POST /api/screenshot - Extract screenshot from video using Python/FFmpeg
+ * Get video duration using fluent-ffmpeg
+ */
+function getVideoDuration(inputPath: string): Promise<number> {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(inputPath, (err: Error | null, metadata: FFmpegMetadata) => {
+      if (err) {
+        reject(new Error(`Failed to get video duration: ${err.message}`));
+        return;
+      }
+      resolve(metadata.format?.duration || 0);
+    });
+  });
+}
+
+/**
+ * Extract a frame from video using fluent-ffmpeg
+ */
+function extractFrame(
+  inputPath: string,
+  outputPath: string,
+  timestamp?: number
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    // Ensure output directory exists
+    const outputDir = path.dirname(outputPath);
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    let command = ffmpeg(inputPath)
+      .outputOptions([
+        '-vframes', '1',
+        '-q:v', '2',
+      ])
+      .output(outputPath);
+
+    if (timestamp !== undefined) {
+      command = command.seekInput(timestamp);
+    }
+
+    command
+      .on('end', () => resolve(outputPath))
+      .on('error', (err: Error) => reject(err))
+      .run();
+  });
+}
+
+/**
+ * POST /api/screenshot - Extract screenshot from video using FFmpeg (Node.js)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -31,21 +84,29 @@ export async function POST(request: NextRequest) {
 
     // Ensure screenshots directory exists
     const screenshotsDir = path.join(process.cwd(), 'python', 'screenshots');
+    if (!fs.existsSync(screenshotsDir)) {
+      fs.mkdirSync(screenshotsDir, { recursive: true });
+    }
+
     const outputPath = path.join(screenshotsDir, `screenshot_${Date.now()}.png`);
 
-    // Run Python script
-    const result = await runPythonScript(videoPath, outputPath, timestamp);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 500 }
-      );
+    // If no timestamp provided, get the last frame
+    let extractTimestamp = timestamp;
+    if (extractTimestamp === undefined) {
+      try {
+        const duration = await getVideoDuration(videoPath);
+        extractTimestamp = Math.max(0, duration - 0.1);
+      } catch {
+        // Use default if we can't get duration
+        extractTimestamp = 0;
+      }
     }
+
+    await extractFrame(videoPath, outputPath, extractTimestamp);
 
     return NextResponse.json({
       success: true,
-      screenshotPath: result.screenshotPath,
+      screenshotPath: outputPath,
     });
   } catch (error) {
     console.error('Screenshot extraction error:', error);
@@ -57,43 +118,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-function runPythonScript(
-  videoPath: string,
-  outputPath: string,
-  timestamp?: number
-): Promise<{ success: boolean; screenshotPath?: string; error?: string }> {
-  return new Promise((resolve) => {
-    const args = [SCREENSHOT_SCRIPT, videoPath, outputPath];
-    if (timestamp !== undefined) {
-      args.push('--timestamp', String(timestamp));
-    }
-
-    const python = spawn('python', args);
-    let stdout = '';
-    let stderr = '';
-
-    python.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-
-    python.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    python.on('close', (code) => {
-      if (code === 0) {
-        resolve({ success: true, screenshotPath: outputPath });
-      } else {
-        console.error('Python script error:', stderr);
-        resolve({ success: false, error: stderr || 'Script execution failed' });
-      }
-    });
-
-    python.on('error', (error) => {
-      console.error('Python spawn error:', error);
-      resolve({ success: false, error: error.message });
-    });
-  });
 }

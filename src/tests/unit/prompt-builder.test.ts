@@ -6,7 +6,7 @@ import {
   buildPromptPreview,
   PromptComponents,
 } from '@/lib/prompt-builder';
-import { VideoStyle } from '@/types/constants';
+import { VideoStyle } from '@/types/video';
 
 describe('prompt-builder', () => {
   const mockStyle: VideoStyle = {

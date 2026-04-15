@@ -151,14 +151,14 @@ export function VideoGenerator({ onScreenshotNeeded }: VideoGeneratorProps) {
             </Button>
           )}
 
-          {/* Export Button - Disabled until all complete */}
+          {/* Export Button - Coming Soon */}
           <div className="flex-1" />
           <Button
             variant="outline"
-            disabled={!isAllComplete}
-            title={!isAllComplete ? 'Genera todas las escenas primero' : undefined}
+            disabled={true}
+            title="Funcionalidad en desarrollo"
           >
-            {isAllComplete ? 'Exportar Video' : 'Completar para exportar'}
+            {isAllComplete ? 'Exportar Video' : 'Próximamente'}
           </Button>
         </div>
       </CardContent>
