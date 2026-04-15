@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { spawn } from 'child_process';
 import path from 'path';
 
 const SCREENSHOT_SCRIPT = path.join(process.cwd(), 'python', 'screenshot', 'extract_frame.py');
+
+// Zod schema for request validation
+const ScreenshotRequestSchema = z.object({
+  videoPath: z.string().min(1, 'Video path is required').url('Invalid URL format'),
+  timestamp: z.number().positive().optional(),
+});
 
 /**
  * POST /api/screenshot - Extract screenshot from video using Python/FFmpeg
@@ -10,14 +17,17 @@ const SCREENSHOT_SCRIPT = path.join(process.cwd(), 'python', 'screenshot', 'extr
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { videoPath, timestamp } = body;
+    const validation = ScreenshotRequestSchema.safeParse(body);
 
-    if (!videoPath) {
+    if (!validation.success) {
+      const errors = validation.error.errors.map((e) => e.message).join(', ');
       return NextResponse.json(
-        { success: false, error: 'Video path is required' },
+        { success: false, error: `Validation error: ${errors}` },
         { status: 400 }
       );
     }
+
+    const { videoPath, timestamp } = validation.data;
 
     // Ensure screenshots directory exists
     const screenshotsDir = path.join(process.cwd(), 'python', 'screenshots');
