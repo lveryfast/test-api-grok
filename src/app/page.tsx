@@ -28,6 +28,12 @@ export default function HomePage() {
 
   const [showGenerator, setShowGenerator] = useState(false);
 
+  // Reset scene index when showing generator
+  const handleShowGenerator = () => {
+    setCurrentSceneIndex(1);
+    setShowGenerator(true);
+  };
+
   // Handle screenshot extraction via Python
   const handleScreenshotNeeded = useCallback(async (videoPath: string): Promise<string | null> => {
     try {
@@ -85,7 +91,7 @@ export default function HomePage() {
           <div className="flex justify-center">
             <Button
               size="lg"
-              onClick={() => setShowGenerator(true)}
+              onClick={handleShowGenerator}
               disabled={!canShowGenerator || isGenerating}
               className="min-w-[200px]"
             >

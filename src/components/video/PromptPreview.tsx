@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { buildVideoPrompt, validatePromptComponents, estimateTokens } from '@/lib/prompt-builder';
-import { VideoStyle } from '@/types/constants';
+import { VideoStyle } from '@/types/video';
 import { AlertCircle, CheckCircle, Copy, Send } from 'lucide-react';
 
 interface PromptPreviewProps {
@@ -34,9 +34,12 @@ export function PromptPreview({ sceneNumber, onConfirm, isGenerating }: PromptPr
   const previousVideo = generatedVideos[generatedVideos.length - 1];
   const previousScreenshot = previousVideo?.screenshotPath;
 
-  // Build prompt components
-  const scene = scenes[sceneNumber - 1];
+  // Build prompt components with validation
+  const scene = scenes[sceneNumber - 1] || { id: sceneNumber, dialogue: '', description: '' };
   const style: VideoStyle | null = selectedStyle;
+
+  // Check if scene is valid
+  const isSceneValid = scene && scene.dialogue !== undefined && scene.description !== undefined;
 
   const components = {
     script,

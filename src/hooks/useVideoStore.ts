@@ -167,9 +167,9 @@ export const useVideoStore = create<VideoStore>((set, get) => ({
 
   // UI State
   isGenerating: false,
-  currentSceneIndex: 0,
+  currentSceneIndex: 1,
   setIsGenerating: (generating) => set({ isGenerating: generating }),
-  setCurrentSceneIndex: (index) => set({ currentSceneIndex: index }),
+  setCurrentSceneIndex: (index) => set({ currentSceneIndex: Math.max(1, index) }),
 
   // Reset all
   resetAll: () =>
@@ -186,6 +186,6 @@ export const useVideoStore = create<VideoStore>((set, get) => ({
       generatedVideos: [],
       apiLogs: [],
       isGenerating: false,
-      currentSceneIndex: 0,
+      currentSceneIndex: 1,
     }),
 }));

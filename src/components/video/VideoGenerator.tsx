@@ -71,7 +71,7 @@ export function VideoGenerator({ onScreenshotNeeded }: VideoGeneratorProps) {
       // Move to next scene
       if (sceneNumber < totalScenes) {
         setTimeout(() => {
-          setCurrentSceneIndex(sceneNumber);
+          setCurrentSceneIndex(sceneNumber + 1);
           setCurrentStatus('idle');
           setProgress(((sceneNumber) / totalScenes) * 100);
         }, 1500);
