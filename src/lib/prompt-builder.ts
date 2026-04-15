@@ -73,7 +73,7 @@ export function buildVideoPrompt(components: PromptComponents): string {
 
   // Add scene continuity instructions
   if (sceneNumber > 1) {
-    promptParts.push(`INSTRUCCIONES DE CONTINUIDAD:\n- El personaje debe mantener las mismas características visuales.\n- El escenario debe ser consistente con la escena anterior.\n- Mantén el estilo visual的一致性.`);
+    promptParts.push(`INSTRUCCIONES DE CONTINUIDAD:\n- El personaje debe mantener las mismas características visuales.\n- El escenario debe ser consistente con la escena anterior.\n- Mantén el estilo visual de forma consistente.`);
   }
 
   return promptParts.join('\n\n');
