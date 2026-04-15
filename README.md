@@ -1,6 +1,6 @@
 # Grok Video API Test
 
-Interfaz de prueba para la API de video de Grok con continuidad de escenas mediante screenshots.
+Interfaz de prueba para la API de video de Grok con continuidad de escenas mediante screenshots automáticos.
 
 ## Tabla de Contenidos
 
@@ -8,10 +8,13 @@ Interfaz de prueba para la API de video de Grok con continuidad de escenas media
 - [Instalación](#instalación)
 - [Configuración](#configuración)
 - [Uso](#uso)
+- [Flujo de Generación Automática](#flujo-de-generación-automática)
 - [Estructura del Proyecto](#estructura-del-proyecto)
 - [API Routes](#api-routes)
 - [Logs](#logs)
 - [Desarrollo](#desarrollo)
+
+---
 
 ## Requisitos
 
@@ -19,9 +22,9 @@ Interfaz de prueba para la API de video de Grok con continuidad de escenas media
 - Node.js >= 18.0.0
 - npm o yarn
 
-### Backend (Screenshot Extractor)
+### Screenshot Extractor (Python + FFmpeg)
 - Python 3.8+
-- FFmpeg (en PATH del sistema)
+- FFmpeg
 
 ### Verificar instalación de FFmpeg
 
@@ -30,9 +33,11 @@ ffmpeg -version
 ```
 
 Si no está instalado:
-- **Windows**: Descarga desde https://ffmpeg.org/download.html o usa `winget install ffmpeg`
+- **Windows**: `winget install ffmpeg` o descarga desde https://ffmpeg.org/download.html
 - **macOS**: `brew install ffmpeg`
-- **Linux**: `sudo apt install ffmpeg` o `sudo yum install ffmpeg`
+- **Linux**: `sudo apt install ffmpeg`
+
+---
 
 ## Instalación
 
@@ -49,64 +54,43 @@ cd test-api-grok
 npm install
 ```
 
-### 3. Configurar variables de entorno
+### 3. Instalar FFmpeg
+
+El screenshot extractor usa FFmpeg para extraer frames de los videos generados.
+
+```bash
+# Verificar si está instalado
+ffmpeg -version
+
+# Si no está, instalar:
+# Windows:
+winget install ffmpeg
+
+# macOS:
+brew install ffmpeg
+
+# Linux:
+sudo apt install ffmpeg
+```
+
+**Nota**: No se requiere instalar Python ni dependencias adicionales. El script de Python solo necesita FFmpeg en el PATH del sistema.
+
+---
+
+## Configuración
+
+### 1. Configurar variables de entorno
 
 ```bash
 # Copiar el archivo de ejemplo
 cp .env.example .env.local
-
-# Editar .env.local con tu configuración
 ```
 
-### 4. Configurar Python para screenshots
-
-```bash
-# Ir a la carpeta de Python
-cd python/screenshot
-
-# Crear entorno virtual (opcional pero recomendado)
-python -m venv venv
-
-# Activar entorno virtual
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
-
-# Instalar dependencias
-pip install -r requirements.txt
-```
-
-O puedes instalar FFmpeg sin entorno virtual:
-```bash
-pip install moviepy>=1.0.3
-```
-
-### 5. Asegurarse de que FFmpeg esté en el PATH
-
-```bash
-# Verificar
-ffmpeg -version
-
-# Si no está, agregar al PATH del sistema
-```
-
-## Configuración
-
-### Variables de Entorno (.env.local)
+### 2. Editar `.env.local`
 
 ```env
 # Clave de API de Grok (obtener en https://console.x.ai/)
 GROK_API_KEY=tu_api_key_aqui
-
-# URL de la aplicación (para desarrollo local)
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# Ruta del script de Python para screenshots
-SCREENSHOT_SCRIPT_PATH=./python/screenshot/extract_frame.py
-
-# Directorio para logs
-LOGS_DIR=./python/logs
 ```
 
 ### Obtener API Key de Grok
@@ -115,6 +99,8 @@ LOGS_DIR=./python/logs
 2. Crea una cuenta o inicia sesión
 3. Genera una nueva API key
 4. Copia la key en tu `.env.local`
+
+---
 
 ## Uso
 
@@ -141,19 +127,47 @@ http://localhost:3000
 7. **Gancho**: Ingresa el prompt del gancho (primera escena)
 8. **Generar**: Revisa el prompt preview y confirma para generar
 
-### 4. Verificación de Prompts
+---
+
+## Flujo de Generación Automática
+
+El programa maneja automáticamente la continuidad visual entre escenas:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    GENERACIÓN AUTOMÁTICA                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ESCENA 1                                                        │
+│  ├── Usuario ingresa: Guión, Estilo, Personaje, Voz, Gancho     │
+│  ├── Programa construye: Prompt completo                        │
+│  ├── Usuario confirma: "Enviar a Grok"                          │
+│  ├── Grok genera: Video 1 (MP4)                                │
+│  ├── FFmpeg extrae: Screenshot del último frame                │
+│  └── Programa guarda: screenshot_escena1.png                    │
+│                                                                  │
+│  ESCENA 2                                                        │
+│  ├── Programa toma: screenshot_escena1.png (automático)         │
+│  ├── Programa incluye: screenshot en el prompt                   │
+│  ├── Usuario confirma: "Enviar a Grok"                          │
+│  ├── Grok genera: Video 2 (consistente con screenshot)         │
+│  ├── FFmpeg extrae: Screenshot del último frame                │
+│  └── Programa guarda: screenshot_escena2.png                    │
+│                                                                  │
+│  ... continúa hasta escena N                                     │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Verificación de Prompts
 
 Antes de enviar a la API de Grok, puedes:
-- Ver el prompt completo que se enviará
-- Copiar el prompt para revisarlo
-- Confirmar para proceder con la generación
+- ✅ Ver el prompt completo que se enviará
+- ✅ Ver si incluye screenshot de la escena anterior
+- ✅ Copiar el prompt para revisarlo
+- ✅ Confirmar para proceder con la generación
 
-### 5. Generación de Escenas
-
-- La primera escena usa el gancho como base
-- Las escenas siguientes incluyen un screenshot de la escena anterior
-- Esto mantiene la continuidad visual entre escenas
-- Los logs de cada llamada se guardan automáticamente
+---
 
 ## Estructura del Proyecto
 
@@ -193,9 +207,10 @@ test-api-grok/
 │
 ├── python/
 │   ├── screenshot/
-│   │   ├── extract_frame.py     # Script de extracción de frames
-│   │   └── requirements.txt     # Dependencias de Python
+│   │   ├── extract_frame.py     # Script de extracción de frames (FFmpeg)
+│   │   └── requirements.txt     # Dependencias de Python (moviepy)
 │   └── logs/                    # Logs de API (git ignored)
+│       └── api_calls.log        # Archivo de logs de llamadas
 │
 ├── .env.example                 # Template de variables
 ├── .env.local                  # Variables locales (git ignored)
@@ -204,6 +219,8 @@ test-api-grok/
 ├── tailwind.config.ts
 └── vitest.config.ts
 ```
+
+---
 
 ## API Routes
 
@@ -215,7 +232,7 @@ Genera un video usando la API de Grok.
 ```json
 {
   "prompt": "string",
-  "image": "string (opcional, base64 o URL)",
+  "image": "string (opcional)",
   "sceneNumber": 1
 }
 ```
@@ -232,13 +249,13 @@ Genera un video usando la API de Grok.
 
 ### POST /api/screenshot
 
-Extrae un screenshot de un video.
+Extrae un screenshot de un video usando FFmpeg.
 
 **Request:**
 ```json
 {
   "videoPath": "/path/to/video.mp4",
-  "timestamp": 5.5
+  "timestamp": null
 }
 ```
 
@@ -262,9 +279,11 @@ Guarda un nuevo log entry.
 
 Limpia todos los logs.
 
+---
+
 ## Logs
 
-Los logs de llamadas a la API se guardan en:
+Los logs de llamadas a la API se guardan automáticamente en:
 
 ```
 python/logs/api_calls.log
@@ -282,17 +301,17 @@ Formato de cada línea (JSON):
   },
   "response": {
     "success": true,
-    "videoUrl": "https://...",
-    "tokens": 150,
-    "cost": 0.0015
+    "videoUrl": "https://..."
   },
   "duration": 12500
 }
 ```
 
+---
+
 ## Límites de Caracteres
 
-Para оптимизации de costos, se aplican los siguientes límites:
+Para optimizar costos, se aplican los siguientes límites:
 
 | Campo | Límite |
 |-------|--------|
@@ -302,6 +321,8 @@ Para оптимизации de costos, se aplican los siguientes límites:
 | Diálogo por escena | 300 |
 | Descripción por escena | 400 |
 | Estilo personalizado | 200 |
+
+---
 
 ## Estilos Disponibles
 
@@ -317,6 +338,8 @@ Para оптимизации de costos, se aplican los siguientes límites:
 10. **Estilo Dibujo a Lápiz** - Boceto realista
 11. **Estilo Realista** - Fotorealismo
 12. **Estilo Objeto Animado** - Personaje 3D hiperrealista
+
+---
 
 ## Desarrollo
 
@@ -351,34 +374,33 @@ Este proyecto usa shadcn/ui. Para agregar nuevos componentes:
 npx shadcn-ui@latest add <component-name>
 ```
 
+---
+
 ## Troubleshooting
 
 ### FFmpeg no encontrado
 
 ```bash
 # Verificar instalación
-which ffmpeg  # Linux/macOS
-where ffmpeg   # Windows
+ffmpeg -version
 
-# Instalar si no existe
+# Si no está, instalar:
 # Windows: winget install ffmpeg
 # macOS: brew install ffmpeg
 # Linux: sudo apt install ffmpeg
 ```
 
-### Error de Python al extraer screenshots
+### Error al extraer screenshots
 
 1. Verificar que FFmpeg esté instalado: `ffmpeg -version`
-2. Verificar que Python tenga acceso al PATH de FFmpeg
+2. Verificar que FFmpeg esté en el PATH del sistema
 3. Probar el script manualmente:
 
 ```bash
 python python/screenshot/extract_frame.py input.mp4 output.png
 ```
 
-### Error de CORS en desarrollo
-
-Asegúrate de que `NEXT_PUBLIC_APP_URL` en `.env.local` coincida con `http://localhost:3000`.
+---
 
 ## Licencia
 
