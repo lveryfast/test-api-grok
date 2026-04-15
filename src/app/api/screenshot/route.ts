@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import ffmpeg from 'fluent-ffmpeg';
 import path from 'path';
 import fs from 'fs';
-
-// Zod schema for request validation
-const ScreenshotRequestSchema = z.object({
-  videoPath: z.string().min(1, 'Video path is required'),
-  timestamp: z.number().positive().optional(),
-});
+import { ScreenshotRequestSchema } from './schema';
 
 interface FFmpegMetadata {
   format?: {

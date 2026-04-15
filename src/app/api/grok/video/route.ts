@@ -1,27 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { logVideoGeneration, logVideoError } from '@/lib/api-logger';
 import { GrokVideoResponse } from '@/types/api';
+import { VideoGenerationSchema } from './schema';
+import { sanitizePrompt } from './sanitize';
 
 const GROK_API_URL = 'https://api.x.ai/v1/videos/generate';
 const API_KEY = process.env.GROK_API_KEY;
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // ms
-
-// Zod schema for request validation
-const VideoGenerationSchema = z.object({
-  prompt: z.string().min(1, 'Prompt is required').max(10000, 'Prompt too long'),
-  image: z.string().optional(),
-  sceneNumber: z.number().int().positive().optional().default(1),
-});
-
-// Sanitize prompt to prevent injection issues
-function sanitizePrompt(prompt: string): string {
-  return prompt
-    .trim()
-    .slice(0, 10000) // Max length
-    .replace(/[\x00-\x1F\x7F]/g, ''); // Remove control characters
-}
 
 /**
  * Call Grok API with retry logic
