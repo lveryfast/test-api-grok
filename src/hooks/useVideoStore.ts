@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import {
   SceneCount,
   CHARACTER_LIMITS,
@@ -68,7 +69,16 @@ const createEmptyScenes = (count: SceneCount): Scene[] =>
     description: '',
   }));
 
-export const useVideoStore = create<VideoStore>((set, get) => ({
+/**
+ * Store de Zustand con persistencia en localStorage
+ * 
+ * Campos NO persistidos (transitorios):
+ * - isGenerating: estado de generación que no debe persistir
+ * - apiLogs: logs que se regeneran con cada sesión
+ */
+export const useVideoStore = create<VideoStore>()(
+  persist(
+    (set, get) => ({
   // Script
   script: '',
   setScript: (script) =>
@@ -189,4 +199,28 @@ export const useVideoStore = create<VideoStore>((set, get) => ({
       isGenerating: false,
       currentSceneIndex: 1,
     }),
-}));
+}),
+    {
+      name: 'video-store', // nombre en localStorage
+      storage: createJSONStorage(() => localStorage),
+      // Campos a NO persistir (se resetean en cada sesión)
+      partialize: (state) => ({
+        // Persistir todo excepto:
+        // - isGenerating (siempre false al recargar)
+        // - apiLogs (se regeneran)
+        script: state.script,
+        selectedStyle: state.selectedStyle,
+        customStyles: state.customStyles,
+        editedStyles: state.editedStyles,
+        characterPrompt: state.characterPrompt,
+        voicePrompt: state.voicePrompt,
+        sceneCount: state.sceneCount,
+        scenes: state.scenes,
+        hook: state.hook,
+        generatedVideos: state.generatedVideos,
+        currentSceneIndex: state.currentSceneIndex,
+        // NO persistir: isGenerating, apiLogs
+      }),
+    }
+  )
+);
